@@ -65,3 +65,12 @@ class MyAdd (α : Type) where
 
 #check 1 > 2
 
+structure Adder where
+  howMuch : Nat
+
+instance : CoeFun Adder (fun _ => Nat → Nat) where
+  coe a := (· + a.howMuch)
+
+instance [Add a] : Add (Array a) where
+  add x y := Array.zipWith (· + ·) x y
+
