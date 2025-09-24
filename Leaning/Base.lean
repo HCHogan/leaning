@@ -61,3 +61,19 @@ def domesticatedTroll : MonstrousAssistant where
 #check MonstrousAssistant.mk
 
 #check traverse
+ 
+-- ATAPL: Γ ⊢ all x:T.t : Prop
+-- Lean:
+variable (T : Type u) (P : T → Prop)
+#check (forall x : T, P x)   -- : Prop
+
+-- ATAPL: Prf (all x:T.t) ≡ Πx:T. Prf t
+-- Lean（去掉 Prf）就是：证明 ∀x, P x  ≃  (x : T) → P x
+variable (h : ∀ x : T, P x)
+#check fun x => h x          -- (x : T) → P x
+
+-- 反过来，如果你有 (x : T) → P x，也可以做出 ∀ x, P x
+variable (k : (x : T) → P x)
+#check (fun x => k x)        -- 也是 ∀ x : T, P x 的证明
+
+#check Type (max (1 + 1) 2)
