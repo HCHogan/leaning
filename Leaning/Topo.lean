@@ -5,3 +5,4 @@ variable {α : Type*} [TopologicalSpace α]
 variable (s : Set α)
 #check IsOpen s
 
+#print Continuous
