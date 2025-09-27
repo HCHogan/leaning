@@ -65,12 +65,68 @@ def plusR_zero_left : (k : Nat) → k = myPlusR 0 k
   | 0 => by rfl
   | n + 1 => congrArg (· + 1) (plusR_zero_left n)
 
-/- def plusR_succ_left (n : Nat) : (k : Nat) → myPlusR (n + 1) k = myPlusR n k + 1 -/
-/-   | 0 => by rfl -/
-/-   | k + 1 => congrArg (· + 1) (plusR_succ_left ) -/
+def plusR_succ_left (n : Nat) : (k : Nat) → myPlusR (n + 1) k = myPlusR n k + 1
+  | 0 => by rfl
+  | k + 1 => congrArg (· + 1) (plusR_succ_left n k)
+-- h : myPlusR (n + 1) k = myPlusR n k + 1
+-- myPlusR (n + 1) (k + 1) definitional equals to myPlusR (n + 1) k + 1
+-- myPlusR (n + 1) k + 1 = myPlusR n k + 1 + 1
+-- => myPlusR (n + 1) (k + 1) = myPlusR n (k + 1) + 1 ∎
 
-/- def appendR : (n k : Nat) → Vect α n → Vect α k → Vect α (myPlusR n k) -/
-/-   | 0, k, .nil, ys => plusR_zero_left k ▸ ys -/
-/-   | n + 1, k, .cons x xs, ys => _ -/
+def appendR : (n k : Nat) → Vect α n → Vect α k → Vect α (myPlusR n k)
+  | 0, k, .nil, ys => plusR_zero_left k ▸ ys
+  | n + 1, k, .cons x xs, ys => plusR_succ_left n k ▸ .cons x (appendR n k xs ys)
 
+theorem plusR_zero_left_t1 (k : Nat) : k = myPlusR 0 k := by
+  induction k with
+  | zero => rfl
+  | succ n ih =>
+    unfold myPlusR
+    rw [←ih]
+
+theorem plusR_zero_left_t2 (k : Nat) : k = myPlusR 0 k := by
+  induction k with
+  | zero => rfl
+  | succ n ih =>
+    simp [myPlusR]
+    assumption
+
+theorem plusR_zero_left_t3 (k : Nat) : k = myPlusR 0 k := by
+  induction k <;> simp [myPlusR] <;> assumption
+
+#check And
+#check False
+
+axiom unsound : False
+
+variable (p q : Prop)
+
+example (h : p ∧ q) : q ∧ p :=
+  have hp : p := h.left -- have h : p := s; t => (fun (h : p) => t) s
+  have hq : q := h.right
+  show q ∧ p from ⟨hq, hp⟩
+
+example (h : p ∧ q) : q ∧ p :=
+  have hp : p := h.left
+  suffices hq : q from And.intro hq hp
+  show q from h.right
+
+open Classical
+
+variable (p : Prop)
+
+#check em p
+
+example (h : ¬¬p) : p :=
+  Or.elim (em p)
+    (fun h1 : p => h1)
+    (fun hnp : ¬p => absurd hnp h)
+
+example (h : ¬¬p) : p :=
+  byCases
+    (fun h1 : p => h1)
+    (fun h1 : ¬p => absurd h1 h)
+
+example (h : ¬¬p) : p :=
+  byContradiction (fun h1 : ¬p => show False from h h1)
 
