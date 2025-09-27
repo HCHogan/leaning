@@ -55,6 +55,22 @@ inductive Vect (α : Type u) : Nat → Type u where
   | cons : α → Vect α n → Vect α (n + 1)
 deriving Repr
 
-/- def appendL : (n k : Nat) → Vect α n → Vect α k → Vect α (myPlusL n k) -/
-/-   | 0, k, .nil, ys => ys -/
-/-   | n + 1, k, .cons x xs, ys => (_ : Vect α (myPlusL n k + 1)) -/
+-- Comparing types using definitional equality means that everything involved in definitional equality, 
+-- including the internals of function definitions, becomes part of the interface of programs that use dependent types and indexed families.
+def appendL : Vect α n → Vect α k → Vect α (myPlusL n k)
+  | .nil, ys => ys
+  | .cons x xs, ys => .cons x $ appendL xs ys
+
+def plusR_zero_left : (k : Nat) → k = myPlusR 0 k
+  | 0 => by rfl
+  | n + 1 => congrArg (· + 1) (plusR_zero_left n)
+
+/- def plusR_succ_left (n : Nat) : (k : Nat) → myPlusR (n + 1) k = myPlusR n k + 1 -/
+/-   | 0 => by rfl -/
+/-   | k + 1 => congrArg (· + 1) (plusR_succ_left ) -/
+
+/- def appendR : (n k : Nat) → Vect α n → Vect α k → Vect α (myPlusR n k) -/
+/-   | 0, k, .nil, ys => plusR_zero_left k ▸ ys -/
+/-   | n + 1, k, .cons x xs, ys => _ -/
+
+
