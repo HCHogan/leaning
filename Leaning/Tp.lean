@@ -130,3 +130,25 @@ example (h : ¬¬p) : p :=
 example (h : ¬¬p) : p :=
   byContradiction (fun h1 : ¬p => show False from h h1)
 
+-- ¬p equals to p -> False
+example (hpq : p → q) (hnq : ¬q) : ¬p :=
+  fun hp : p => show False from hnq (hpq hp)
+
+-- we can consider the implication of props as ∀ x : p, q, where q does not depend on x
+
+/- example (α : Type) (p q : α → Prop) : (∀ x : α, p x ∧ q x) → ∀ y : α, p y := _ -/
+
+#check @Eq.refl.{u}
+#check @Eq.symm.{u}
+#check @Eq.trans.{u}
+
+
+example (f : α → β) (a : α) : (fun x => f x) a = f a := Eq.refl _
+example (f : α → β) (a : α) : (fun x => f x) a = f a := rfl
+
+example (α : Type) (a b : α) (p : α → Prop) (h1 : a = b) (h2 : p a) : p b :=
+  Eq.subst h1 h2
+
+example (α : Type) (a b : α) (p : α → Prop) (h1 : a = b) (h2 : p a) : p b :=
+  h1 ▸ h2
+
