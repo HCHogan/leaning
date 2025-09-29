@@ -152,3 +152,18 @@ example (α : Type) (a b : α) (p : α → Prop) (h1 : a = b) (h2 : p a) : p b :
 example (α : Type) (a b : α) (p : α → Prop) (h1 : a = b) (h2 : p a) : p b :=
   h1 ▸ h2
 
+variable (a b c d e : Nat)
+variable (h1 : a = b)
+variable (h2 : b = c + 1)
+variable (h3 : c = d)
+variable (h4 : e = 1 + d)
+
+example : a = e :=
+  calc
+    a = b      := by rw [h1]
+    _ = c + 1  := by rw [h2]
+    _ = d + 1  := by rw [h3]
+    _ = 1 + d  := by rw [Nat.add_comm]
+    _ = e      := by rw [h4]
+
+
