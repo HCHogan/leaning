@@ -146,6 +146,8 @@ example (hpq : p → q) (hnq : ¬q) : ¬p :=
 example (f : α → β) (a : α) : (fun x => f x) a = f a := Eq.refl _
 example (f : α → β) (a : α) : (fun x => f x) a = f a := rfl
 
+example : 1 + 1 = 2 := by rfl
+
 example (α : Type) (a b : α) (p : α → Prop) (h1 : a = b) (h2 : p a) : p b :=
   Eq.subst h1 h2
 
@@ -166,4 +168,6 @@ example : a = e :=
     _ = 1 + d  := by rw [Nat.add_comm]
     _ = e      := by rw [h4]
 
-
+#reduce (1 : Nat) + 1
+opaque two : Nat := 1 + 1
+/- example : two = 1 + 1 := by rfl -/
