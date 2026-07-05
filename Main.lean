@@ -6,7 +6,7 @@ def main : IO Unit :=
 partial def getLines : IO String := do
   IO.println "Enter your text:"
   let line ← (← IO.getStdin).getLine
-  if line.trim.isEmpty then
-    return line.trimRight
+  if line.trimAscii.isEmpty then
+    return line.trimAsciiEnd.toString
   else
-    return line.trimRight ++ (← getLines)
+    return line.trimAsciiEnd.toString ++ (← getLines)
