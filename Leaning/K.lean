@@ -63,3 +63,34 @@ def make_finite_list : Nat → List Nat
 | n + 1 => (n + 1) :: make_finite_list ((n + 1) / 2)
 
 #reduce make_finite_list 10
+
+def forall_a_in_a_a (α : Type) : α → α :=
+  sorry
+
+def T : Type 1 := (α : Type) → α → α
+
+inductive Bar : Type 1 → Type _ where
+  | mk : (α : Type 1) → Bar α
+
+#print Bar
+
+inductive Bar2 : Type 1 → Type 2 where
+  | mk : (α : Type 1) → Bar2 α
+  | unit : Bar2 (ULift Nat)
+
+#print Bar2
+
+inductive Baz : Type _ where
+  | mk : (α : Type) → Baz
+
+#print Baz
+
+inductive IndexType : Type u → Type (u+1) 
+| mk (A : Type u) (a : A) : IndexType A
+
+inductive MyEven : Nat → Prop where
+  | zero : MyEven 0
+
+#print MyEven.rec
+
+#check List.cons
