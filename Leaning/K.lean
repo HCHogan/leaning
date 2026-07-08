@@ -94,3 +94,27 @@ inductive MyEven : Nat → Prop where
 #print MyEven.rec
 
 #check List.cons
+
+theorem fst_of_two_props : ∀ α β : Prop, α → β → α := by
+  intro a b
+  intro ha hb
+  exact ha
+
+theorem and_swap : ∀ a b : Prop, a ∧ b → b ∧ a := by
+  intro a b hab
+  apply And.intro
+  · exact And.right hab
+  · exact And.left hab
+
+theorem Eq_trans_symm {α : Type} (a b c : α) (hab : a = b) (hcb : c = b) : a = c := by
+  apply Eq.trans
+  · exact hab
+  · apply Eq.symm
+    exact hcb
+
+theorem my_add_zero (n : ℕ) : 0 + n = n := by
+  induction n with
+  | zero => rfl
+  | succ n' ih => simp only [ih, ← add_assoc]
+
+
