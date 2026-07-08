@@ -117,4 +117,7 @@ theorem my_add_zero (n : ℕ) : 0 + n = n := by
   | zero => rfl
   | succ n' ih => simp only [ih, ← add_assoc]
 
+abbrev my_money : ENat := ⊤
 
+theorem i_have_a_lot_of_money (n : ℕ) : (n : ENat) < my_money := by
+  exact WithTop.coe_lt_top n
