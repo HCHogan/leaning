@@ -24,6 +24,8 @@ example {A : Type} {B : Type} {P : A → B → Prop}
 
 #eval decide (3 < 5)
 
+#print Decidable
+
 example [inst : Decidable (3 < 5)] : String :=
   match inst with
   | .isTrue _ => "yes"
@@ -96,8 +98,7 @@ inductive MyEven : Nat → Prop where
 #check List.cons
 
 theorem fst_of_two_props : ∀ α β : Prop, α → β → α := by
-  intro a b
-  intro ha hb
+  intro a b ha hb
   exact ha
 
 theorem and_swap : ∀ a b : Prop, a ∧ b → b ∧ a := by
@@ -121,3 +122,76 @@ abbrev my_money : ENat := ⊤
 
 theorem i_have_a_lot_of_money (n : ℕ) : (n : ENat) < my_money := by
   exact WithTop.coe_lt_top n
+
+theorem forall_one_point₁ {α : Type} (t : α) (P : α → Prop) :
+  (∀ x, x = t → P x) ↔ P t := by
+  apply Iff.intro
+  · intro hall
+    exact hall t rfl
+  · intro hp x heq
+    rw [heq]
+    exact hp
+
+theorem forall_one_point₂ {α : Type} (t : α) (P : α → Prop) :
+  (∀ x, x = t → P x) ↔ P t :=
+  Iff.intro
+    (fun hall => hall t rfl)
+    (fun hp _ heq => heq ▸ hp)
+
+theorem exists_one_point₁ {α : Type} (t : α) (P : α → Prop) :
+  (∃ x : α, x = t ∧ P x) ↔ P t := by
+  constructor
+  · intro hex
+    have ⟨w, hw⟩ := hex
+    have ⟨hwl, hwr⟩ := hw
+    rw [← hwl]
+    exact hwr
+  · intro hpt
+    exists t
+
+theorem exists_one_point₂ {α : Type} (t : α) (P : α → Prop) :
+  (∃ x : α, x = t ∧ P x) ↔ P t :=
+  ⟨
+    (fun ⟨_, hxt, hpx⟩ => hxt ▸ hpx),
+    (fun pt => ⟨t, rfl, pt⟩)
+  ⟩
+
+theorem two_mul_example (m n : ℕ) : 2 * m + n = m + n + m :=
+  calc
+    2 * m + n = m + m + n :=
+      by rw [Nat.two_mul]
+    _ = m + n + m :=
+      by ac_rfl
+
+def reverse {α : Type} : List α → List α
+  | [] => []
+  | x :: xs => reverse xs ++ [x]
+
+def reverse_append {α : Type} : (xs ys : List α) → reverse (xs ++ ys) = reverse ys ++ reverse xs
+  | [], ys => by simp [reverse]
+  | x :: xs, ys => by simp [reverse, reverse_append xs]
+
+def reverse_append_tactic {α : Type} (xs ys : List α) : reverse (xs ++ ys) = reverse ys ++ reverse xs := by
+  induction xs with
+  | nil => simp [reverse]
+  | cons x xs hxs => simp [reverse, hxs]
+
+def fact : ℕ → ℕ
+  | 0 => 0
+  | n + 1 => (n + 1) * fact n
+
+def map {α β : Type} (f : α → β) : List α → List β
+| [] => []
+| x :: xs => f x :: map f xs
+
+theorem map_ident {α : Type} (ls : List α) : map id ls = ls := by
+  induction ls with
+  | nil => rfl
+  | cons x xs hxs =>
+    /- change x :: map id xs = x :: xs -/
+    calc map id (x :: xs)
+      _ = id x :: map id xs := by rfl -- definitional equal
+      _ = x :: map id xs := by rfl
+      _ = x :: xs := by rw [hxs]
+
+
