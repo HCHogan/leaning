@@ -1,5 +1,7 @@
 import Mathlib
 
+namespace K
+
 variable {α : Type} (s t : Set α)
 
 #check s ⊆ t
@@ -194,4 +196,53 @@ theorem map_ident {α : Type} (ls : List α) : map id ls = ls := by
       _ = x :: map id xs := by rfl
       _ = x :: xs := by rw [hxs]
 
+def headOpt {α : Type} : (xs : List α) → Option α
+  | [] => .none
+  | x :: _ => .some x
+
+def headPre {α : Type} : (xs : List α) → xs ≠ [] → α
+  | [], hxs => (hxs rfl).elim -- absurd rfl hxs
+  | x :: _, _ => x
+
+def zip {α β : Type} : List α → List β → List (α × β)
+  | x :: xs, y :: ys => ⟨x, y⟩ :: zip xs ys
+  | [], _ => []
+  | _, [] => []
+
+def length {α : Type} : List α → Nat
+  | [] => 0
+  | _ :: xs => 1 + length xs
+
+theorem min_add_add₁ (l m n : ℕ) : min (m + l) (n + l) = min m n + l := by
+  cases Classical.em (m <= n) with
+  | inl h => simp [min, h]
+  | inr h => simp [min, h]
+
+theorem min_add_add₂ (l m n : ℕ) : min (m + l) (n + l) = min m n + l := 
+  if h : m ≤ n then by
+    simp [min, h]
+  else by
+    simp [min, h]
+
+theorem length_zip {α β : Type} (xs : List α) (ys : List β) :
+  length (zip xs ys) = min (length xs) (length ys) := by
+  induction xs generalizing ys with
+  | nil => simp [zip, min, length]
+  | cons x xs' ih => cases ys with
+    | nil => simp [zip, min, length]
+    | cons y ys' => simp [zip, length, ih ys']
+
+theorem map_zip {α α' β β' : Type} (f : α → α') (g : β → β') : ∀ xs ys,
+  map (fun ⟨a, b⟩ ↦ ⟨f a, g b⟩) (zip xs ys) = zip (map f xs) (map g ys)
+| [], _ => by rfl
+| _ :: _, [] => by rfl
+| x :: xs, y :: ys => by simp [zip, map, map_zip f g xs ys]
+
+inductive Tree (α : Type) where
+  | nil : Tree α
+  | node : α → Tree α → Tree α → Tree α
+
+
+
+end K
 
