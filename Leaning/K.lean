@@ -242,7 +242,25 @@ inductive Tree (α : Type) where
   | nil : Tree α
   | node : α → Tree α → Tree α → Tree α
 
+def mirror {α : Type} : Tree α → Tree α
+  | .nil => .nil
+  | .node a l r => .node a (mirror l) (mirror r)
 
+theorem mirror_mirror₁ {α : Type} (t : Tree α) : mirror (mirror t) = t := by
+  induction t with
+  | nil => rfl
+  | node a l r hl hr => simp [hl, hr, mirror]
+
+theorem mirror_mirror₂ {α : Type} (t : Tree a) : mirror (mirror t) = t := by
+  induction t with
+  | nil => rfl
+  | node a l r hl hr => calc
+    mirror (mirror (.node a l r)) = .node a (mirror (mirror l)) (mirror (mirror r)) := by rfl
+    _ = .node a l r := by rw [hl, hr]
+
+inductive Vec (α : Type) : ℕ → Type where
+  | nil : Vec α 0
+  | cons : {n : ℕ} → α → Vec α (n + 1)
 
 end K
 
