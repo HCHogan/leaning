@@ -211,7 +211,7 @@ def zip {α β : Type} : List α → List β → List (α × β)
 
 def length {α : Type} : List α → Nat
   | [] => 0
-  | _ :: xs => 1 + length xs
+  | _ :: xs => length xs + 1
 
 theorem min_add_add₁ (l m n : ℕ) : min (m + l) (n + l) = min m n + l := by
   cases Classical.em (m <= n) with
@@ -258,9 +258,72 @@ theorem mirror_mirror₂ {α : Type} (t : Tree a) : mirror (mirror t) = t := by
     mirror (mirror (.node a l r)) = .node a (mirror (mirror l)) (mirror (mirror r)) := by rfl
     _ = .node a l r := by rw [hl, hr]
 
+theorem mirror_eq_nil_iff {α : Type} : ∀ t : Tree α, mirror t = .nil ↔ t = .nil
+  | .nil => by rfl
+  | .node a l r => by simp [mirror]
+
 inductive Vec (α : Type) : ℕ → Type where
   | nil : Vec α 0
-  | cons : {n : ℕ} → α → Vec α (n + 1)
+  | cons : {n : ℕ} → α → Vec α n → Vec α (n + 1)
+
+def listOfVec {α : Type} : ∀{n : ℕ}, Vec α n → List α
+  | _, .nil => []
+  | _, .cons a v => a :: listOfVec v
+
+def vecOfList {α : Type} : (xs : List α) → Vec α (length xs)
+  | [] => .nil
+  | x :: xs => .cons x (vecOfList xs)
+
+def length_listOfVec₁ {α : Type} : ∀(n : ℕ) (v : Vec α n), length (listOfVec v) = n
+  | _, .nil => by rfl
+  | n' + 1, .cons a v => by calc
+      length (listOfVec (Vec.cons a v)) = length (listOfVec v) + 1 := by rfl
+      _ = n' + 1 := by rw [length_listOfVec₁ n']
+
+inductive Even : ℕ → Prop where
+  | zero : Even 0
+  | add_two : (k : ℕ) → Even k → Even (k + 2)
+
+theorem even_4 : Even 4 := by
+  have even_0 : Even 0 := .zero
+  have even_2 : Even 2 := .add_two _ even_0
+  have even_4 : Even 4 := .add_two _ even_2
+  exact even_4
+
+inductive Score : Type where
+  | vs : ℕ → ℕ → Score
+  | advServ : Score
+  | advRecv : Score
+  | gameServ : Score
+  | gameRecv : Score
+
+inductive Step : Score → Score → Prop where
+  | serv_0_15 : ∀n, Step (.vs 0 n) (.vs 15 n)
+  | serv_15_30 : ∀n, Step (.vs 15 n) (.vs 30 n)
+  | serv_30_40 : ∀n, Step (.vs 30 n) (.vs 40 n)
+  | serv_40_game: ∀n, n < 40 → Step (.vs 40 n) .gameServ
+
+  | serv_40_adv: Step (.vs 40 40) .advServ
+  | serv_adv_40: Step .advServ (.vs 40 40)
+  | serv_adv_game: Step .advServ .gameServ
+
+  | recv_0_15 : ∀n, Step (.vs n 0) (.vs n 15)
+  | recv_15_30 : ∀n, Step (.vs n 15) (.vs n 30)
+  | recv_30_40: ∀n, Step (.vs n 30) (.vs n 40)
+  | recv_40_game: ∀n, n < 40 → Step (.vs n 40) .gameRecv
+
+  | recv_40_adv: ∀n, Step (.vs n 40) .advRecv
+  | recv_adv_40:  Step .advRecv (.vs 40 40)
+  | recv_adv_game: Step .advRecv .gameRecv
+
+theorem no_step_to_0_0 (s : Score) : ¬ Step s (.vs 0 0) := by
+  intro h
+  cases h
+
+inductive Star {α : Type} (R : α → α → Prop) : α → α → Prop where
+  | base (a b : α) : R a b → Star R a b
+  | refl (a : α) : Star R a a
+  | trans (a b c : α) : Star R a b → Star R b c → Star R a c
 
 end K
 
