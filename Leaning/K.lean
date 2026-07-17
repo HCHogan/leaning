@@ -325,5 +325,23 @@ inductive Star {α : Type} (R : α → α → Prop) : α → α → Prop where
   | refl (a : α) : Star R a a
   | trans (a b c : α) : Star R a b → Star R b c → Star R a c
 
+theorem mod_two_Eq_zero_of_Even (n : ℕ) (h : Even n) : n % 2 = 0 := by
+  induction h with
+  | zero => rfl
+  | add_two k ek ih => simp [ih]
+
+theorem star_star_iff_star {α : Type} (R : α → α → Prop) (a b : α) :
+  Star (Star R) a b ↔ Star R a b := by
+  apply Iff.intro
+  · intro h
+    induction h with
+    | base a' b' hab => exact hab
+    | refl a' => exact .refl a'
+    | trans a' b' c' hab hbc ihab ihbc => exact .trans a' b' c' ihab ihbc
+  · intro h
+    apply Star.base
+    exact h
+
+
 end K
 
