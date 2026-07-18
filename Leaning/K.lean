@@ -280,16 +280,6 @@ def length_listOfVec₁ {α : Type} : ∀(n : ℕ) (v : Vec α n), length (listO
       length (listOfVec (Vec.cons a v)) = length (listOfVec v) + 1 := by rfl
       _ = n' + 1 := by rw [length_listOfVec₁ n']
 
-inductive Even : ℕ → Prop where
-  | zero : Even 0
-  | add_two : (k : ℕ) → Even k → Even (k + 2)
-
-theorem even_4 : Even 4 := by
-  have even_0 : Even 0 := .zero
-  have even_2 : Even 2 := .add_two _ even_0
-  have even_4 : Even 4 := .add_two _ even_2
-  exact even_4
-
 inductive Score : Type where
   | vs : ℕ → ℕ → Score
   | advServ : Score
@@ -320,6 +310,16 @@ theorem no_step_to_0_0 (s : Score) : ¬ Step s (.vs 0 0) := by
   intro h
   cases h
 
+inductive Even : ℕ → Prop where
+  | zero : Even 0
+  | add_two : (k : ℕ) → Even k → Even (k + 2)
+
+theorem even_4 : Even 4 := by
+  have even_0 : Even 0 := .zero
+  have even_2 : Even 2 := .add_two _ even_0
+  have even_4 : Even 4 := .add_two _ even_2
+  exact even_4
+
 inductive Star {α : Type} (R : α → α → Prop) : α → α → Prop where
   | base (a b : α) : R a b → Star R a b
   | refl (a : α) : Star R a a
@@ -342,6 +342,53 @@ theorem star_star_iff_star {α : Type} (R : α → α → Prop) (a b : α) :
     apply Star.base
     exact h
 
+@[simp] theorem star_star_eq_star {α : Type} (R : α → α → Prop) :
+  Star (Star R) = Star R := by
+  apply funext
+  intro a
+  apply funext
+  intro b
+  apply propext
+  apply star_star_iff_star
+
+example : 2 * 3 < 8 := by linarith
+
+theorem even_iff (n : ℕ) : Even n ↔ n = 0 ∨ (∃m : ℕ, n = m + 2 ∧ Even m) := by
+  constructor
+  · intro heven
+    cases heven with
+    | zero => exact .inl rfl
+    | add_two k evenk =>
+      apply Or.inr
+      exact ⟨k, rfl, evenk⟩
+  · intro hor
+    match hor with
+    | .inl hzero => 
+      rw [hzero]
+      exact .zero
+    | .inr ⟨m, hm, hevenm⟩ => 
+      rw [hm]
+      exact .add_two m hevenm
+
+inductive Sorted : List ℕ → Prop where
+  | nil : Sorted []
+  | single (x : ℕ) : Sorted [x]
+  | two_or_more (x y : ℕ) {zs : List ℕ} (hle : x ≤ y) (hsorted : Sorted (y :: zs)) : Sorted (x :: y :: zs)
+
+theorem Sorted_3_5 : Sorted [3, 5] := by
+  apply Sorted.two_or_more
+  · linarith
+  · exact .single 5
+
+theorem not_sorted_17_13 : ¬ Sorted [17, 13] := by
+  intro h
+  cases h with
+  | two_or_more _ _ h _ => omega
+
+inductive Palindrome {α : Type} : List α → Prop where
+  | nil : Palindrome []
+  | single (x : α) : Palindrome [x]
+  | sandwich (x : α) (xs : List α) (hxs : Palindrome xs) : Palindrome ([x] ++ xs ++ [x])
 
 end K
 
