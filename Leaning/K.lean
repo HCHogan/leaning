@@ -390,5 +390,55 @@ inductive Palindrome {α : Type} : List α → Prop where
   | single (x : α) : Palindrome [x]
   | sandwich (x : α) (xs : List α) (hxs : Palindrome xs) : Palindrome ([x] ++ xs ++ [x])
 
+theorem Palindrome_reverse {α : Type} (xs : List α) (hxs : Palindrome xs) : Palindrome (reverse xs) := by
+  induction hxs with
+  | nil => exact .nil
+  | single x => exact .single x
+  | sandwich x xs hxs ihxs =>
+    simp [reverse, reverse_append]
+    exact Palindrome.sandwich x (reverse xs) ihxs
+
+inductive IsFull {α : Type} : Tree α → Prop where
+  | nil : IsFull Tree.nil
+  | node (a : α) (l r : Tree α) (hl : IsFull l) (hr : IsFull r) (hiff : l = Tree.nil ↔ r = Tree.nil) : IsFull (Tree.node a l r)
+
+theorem IsFull_singleton {α : Type} (a : α) : IsFull (.node a .nil .nil) := by
+  constructor
+  · exact .nil
+  · exact .nil
+  · rfl
+
+theorem IsFull_mirror {α : Type} (t : Tree α) (hfull : IsFull t) : IsFull (mirror t) := by
+  induction hfull with
+  | nil => exact .nil
+  | node a l r hl hr hiff ihl ihr =>
+    constructor
+    · exact ihl
+    · exact ihr
+    · have h₁ := propext (mirror_eq_nil_iff l)
+      rw [h₁]
+      have h₂ := propext (mirror_eq_nil_iff r)
+      rw [h₂]
+      exact hiff
+
+inductive Term (α β : Type) : Type where
+  | var : β → Term α β
+  | fn : α → List (Term α β) → Term α β
+
+inductive WellFormed {α β : Type} (arity : α → ℕ) : Term α β → Prop where
+  | var (x : β) : WellFormed arity (.var x)
+  | fn (f : α) (ts : List (Term α β)) (hargs : ∀t ∈ ts, WellFormed arity t) (hlen : length ts = arity f) : WellFormed arity (.fn f ts)
+
+inductive VariableFree {α β : Type} : Term α β → Prop where
+  | fn (f : α) (ts : List (Term α β)) (hargs : ∀t ∈ ts, VariableFree t) : VariableFree (.fn f ts)
+
+theorem not_even_two_mul_add_one (n m : ℕ) (hm : m = 2 * n + 1) : ¬ Even m := by
+  intro h
+  induction h generalizing n with
+  | zero => linarith
+  | add_two k hk ihk =>
+    apply ihk (n - 1)
+    omega
+
 end K
 
