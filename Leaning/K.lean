@@ -440,5 +440,18 @@ theorem not_even_two_mul_add_one (n m : ℕ) (hm : m = 2 * n + 1) : ¬ Even m :=
     apply ihk (n - 1)
     omega
 
+def nth {α : Type} : List α → Nat → Option α
+  | [], _ => .none
+  | x :: _, 0 => .some x
+  | _ :: xs, n + 1 => nth xs n
+
+def sum257Do (ns : List ℕ) : Option ℕ := do
+  let n₂ ← nth ns 1
+  let n₅ ← nth ns 4
+  let n₇ ← nth ns 6
+  pure (n₂ + n₅ + n₇)
+
+
+
 end K
 
