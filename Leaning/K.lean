@@ -433,10 +433,19 @@ inductive VariableFree {α β : Type} : Term α β → Prop where
   | fn (f : α) (ts : List (Term α β)) (hargs : ∀t ∈ ts, VariableFree t) : VariableFree (.fn f ts)
 
 theorem not_even_two_mul_add_one (n m : ℕ) (hm : m = 2 * n + 1) : ¬ Even m := by
-  intro h
+  intro h -- we have (n m : ℕ) (hm : m = 2 * n + 1) (h : Even m)
   induction h generalizing n with
-  | zero => linarith
-  | add_two k hk ihk =>
+  -- motive 接受Even m和他所有的index，这里只是m : Nat
+  -- induction 把依赖Even m 的index m的东西deactivate并塞进motive
+  -- motive (before generalizing): (m : ℕ) → (_ : Even m) → (m = 2 * n + 1 → False)
+  -- motive (after generalizing): (m : ℕ) → (_ : Even m) → (∀n, m = 2 * n + 1 → False)
+  | zero => 
+    -- goal : motive 0 (Even 0) aka 0 = 2 * n + 1 → False
+    linarith
+  | add_two k hk ihk => 
+    -- 手里多给k : ℕ, hk : Even k, ihk : motive k (Even k)
+    -- goal : motive (k + 2) (Even.add_two k hk) aka ∀n, k + 2 = 2 * n + 1 → False
+    -- induction reintroduces k + 2 = 2 * n + 1 as hm and Nat n
     apply ihk (n - 1)
     omega
 
@@ -451,7 +460,44 @@ def sum257Do (ns : List ℕ) : Option ℕ := do
   let n₇ ← nth ns 6
   pure (n₂ + n₅ + n₇)
 
+def Concat1 (l₁ l₂ l₃ : List α) : Prop := l₁ ++ l₂ = l₃
 
+inductive Concat : List α → List α → List α → Prop where
+  | nil  : ∀ ys, Concat [] ys ys
+  | cons : ∀ x xs ys zs, Concat xs ys zs → Concat (x :: xs) ys (x :: zs)
+
+theorem concat_iff (l₁ l₂ l₃ : List α) : Concat l₁ l₂ l₃ ↔ l₁ ++ l₂ = l₃ := by
+  constructor
+  · intro h
+    induction h with
+    | nil ys => rfl
+    | cons x xs ys zs h ih => exact ih ▸ rfl
+  · rintro rfl
+    induction l₁ with
+    | nil => exact .nil l₂
+    | cons x xs ih => exact .cons x xs l₂ (xs ++ l₂) ih
+
+#print LawfulMonad
+
+def sum (xs : Array Nat) : Nat := Id.run do
+  let mut s := 0
+  for x in xs do
+    s := s + x
+  return s
+
+#print sum
+
+/- @[reducible] -/
+def id {α : Sort u} (a : α) : α := a
+
+/- @[reducible] -/
+def Id : Type → Type := @id Type
+
+def id.pure {α : Type} : α → Id α
+  | a => a
+
+def id.bind {α : Type} (a : Id α) (f : α → Id α) : Id α := f a
+  
 
 end K
 
