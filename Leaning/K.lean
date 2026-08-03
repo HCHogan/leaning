@@ -1,4 +1,7 @@
 import Mathlib
+import Lean.Elab.Tactic
+
+open Lean Elab Tactic
 
 namespace K
 
@@ -497,7 +500,99 @@ def id.pure {α : Type} : α → Id α
   | a => a
 
 def id.bind {α : Type} (a : Id α) (f : α → Id α) : Id α := f a
+
+def Action (σ α : Type) : Type := σ → α × σ
+
+def Action.read {σ : Type} : Action σ σ
+  | s => (s, s)
+
+def Action.pure {σ α : Type} (a : α) : Action σ α
+  | s => (a, s)
+
+def Action.bind {σ α β : Type} (ma : Action σ α) (f : α → Action σ β) : Action σ β
+  | s => 
+    let (a, s') := ma s
+    f a s'
+
+instance Action.Monad {σ : Type} : Monad (Action σ) := {
+  pure := Action.pure
+  bind := Action.bind
+}
+
+/- instance Action.LawfulMonad {σ : Type} :  -/
+/-   LawfulMonad (Action σ) := -/
+/-   { -/
+/-     pure_bind := by -/
+/-       intro α β a f -/
+/-       rfl -/
+/-     bind_assoc := by -/
+/-       intro α β γ f g ma -/
+/-       rfl -/
+/-     map_const := _ -/
+/-     id_map := _ -/
+/-     seqLeft_eq := _ -/
+/-     seqRight_eq := _ -/
+/-     pure_seq := _ -/
+/-     bind_pure_comp := _ -/
+/-     bind_map := _ } -/
+
   
+example : 3 ∈ {n : ℕ | n % 2 = 1} := rfl
+
+def increasingly : List ℕ → StateM ℕ (List ℕ)
+  | [] => pure []
+  | (n :: ns) => do
+    let prev ← get
+    if n < prev then
+      increasingly ns
+    else do
+      set n
+      let ns' ← increasingly ns
+      pure (n :: ns')
+
+#eval increasingly [1,2,3,4] |>.run' 0
+
+/- theorem repeat_example : Even 4 ∧ Even 7 ∧ Even 3 ∧ Even 0 := by -/
+/-   repeat' apply And.intro -/
+/-   any_goals repeat' first -/
+/-   | apply Even.add_two -/
+/-   | apply Even.zero -/
+/-   sorry -/
+
+macro "intro_and_even" : tactic => `(tactic|(
+  repeat' apply And.intro
+  any_goals solve
+  | repeat' first
+    | apply Even.add_two
+    | apply Even.zero
+))
+
+#eval Lean.versionString
+
+def hypothesis : TacticM Unit := withMainContext do
+  let target ← getMainTarget
+  let lctx ← getLCtx
+  for ldecl in lctx do
+    if ! LocalDecl.isImplementationDetail ldecl then
+      if ← Meta.isDefEq (LocalDecl.type ldecl) target then
+        let goal ← getMainGoal
+        MVarId.assign goal (LocalDecl.toExpr ldecl)
+        return
+
+def sumOdds (xs : List Nat) : Nat := Id.run do
+  let mut acc := 0
+  for x in xs do
+    if x % 2 == 0 then continue
+    if acc > 100 then break
+    acc := acc + x
+  return acc
+
+def sumOdds_elaborated (xs : List Nat) : Nat := Id.run do
+  let acc := 0
+  let acc ← ForIn.forIn xs acc fun x acc => do
+    if x % 2 == 0 then pure (.yield acc)          -- continue = 原状态 yield
+    else if acc > 100 then pure (.done acc)       -- break = 原状态 done
+    else pure (.yield (acc + x))                  -- 赋值 = 新状态 yield
+  return acc
 
 end K
-
