@@ -443,7 +443,7 @@ theorem not_even_two_mul_add_one (n m : ℕ) (hm : m = 2 * n + 1) : ¬ Even m :=
   -- motive (before generalizing): (m : ℕ) → (_ : Even m) → (m = 2 * n + 1 → False)
   -- motive (after generalizing): (m : ℕ) → (_ : Even m) → (∀n, m = 2 * n + 1 → False)
   | zero => 
-    -- goal : motive 0 (Even 0) aka 0 = 2 * n + 1 → False
+    -- goal : motive 0 (Even.zero) aka 0 = 2 * n + 1 → False
     linarith
   | add_two k hk ihk => 
     -- 手里多给k : ℕ, hk : Even k, ihk : motive k (Even k)
