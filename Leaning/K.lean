@@ -595,4 +595,19 @@ def sumOdds_elaborated (xs : List Nat) : Nat := Id.run do
     else pure (.yield (acc + x))                  -- 赋值 = 新状态 yield
   return acc
 
+theorem not_even_two_mul_add_one₂ (n m : ℕ) (hm : m = 2 * n + 1) : ¬ Even m := by
+  intro h
+  induction h generalizing n with
+  | zero => omega
+  | add_two k hk ihk =>
+    apply ihk (n - 1)
+    omega
+
+def isTheorem : ConstantInfo → Bool
+  | ConstantInfo.axiomInfo _ => true
+  | ConstantInfo.thminfo _ => true
+  | _ => false
+
+
+
 end K
