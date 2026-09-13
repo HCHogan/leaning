@@ -2,6 +2,7 @@ import Mathlib
 import Lean.Elab.Tactic
 
 open Lean Elab Tactic
+open Lean Elab Tactic Meta
 
 namespace K
 
@@ -605,9 +606,11 @@ theorem not_even_two_mul_add_one₂ (n m : ℕ) (hm : m = 2 * n + 1) : ¬ Even m
 
 def isTheorem : ConstantInfo → Bool
   | ConstantInfo.axiomInfo _ => true
-  | ConstantInfo.thminfo _ => true
+  | ConstantInfo.thmInfo _ => true
   | _ => false
 
-
+def applyConstant (name : Name) : TacticM Unit := do
+  let cst ← mkConstWithFreshMVarLevels name
+  liftMetaTactic (fun goal ↦ MVarId.apply goal cst)
 
 end K
